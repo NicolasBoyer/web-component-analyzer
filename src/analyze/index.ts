@@ -25,6 +25,7 @@ export * from "./types/features/component-member";
 export * from "./types/features/component-method";
 export * from "./types/features/component-slot";
 export * from "./types/features/lit-element-property-config";
+export * from "./types/features/wapitis-property-config";
 
 /*export * from "./flavors/analyzer-flavor";
 export * from "./flavors/custom-element/custom-element-flavor";
