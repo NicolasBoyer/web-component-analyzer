@@ -99,7 +99,13 @@ export function parseWapitisPropertyOption(
 	// noinspection DuplicateCaseLabelJS
 	switch (kind) {
 		case "attribute": {
-			const attribute: WapitisPropertyConfig["attribute"] | undefined = true;
+			let attribute: WapitisPropertyConfig["attribute"] | undefined;
+
+			if (initializer.kind === ts.SyntaxKind.TrueKeyword) {
+				attribute = true;
+			} else if (initializer.kind === ts.SyntaxKind.FalseKeyword) {
+				attribute = false;
+			}
 
 			return {
 				...config,

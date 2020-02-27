@@ -22,7 +22,7 @@ export function discoverDefinitions(node: Node, { ts, checker }: AnalyzerVisitCo
 				ts.isIdentifier(leftExpression.expression) &&
 				leftExpression.expression.escapedText === "window"
 			) {
-				leftExpression = leftExpression.name;
+				leftExpression = leftExpression.expression;
 			}
 
 			// Check if the "left expression" is called "customElements"

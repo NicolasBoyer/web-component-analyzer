@@ -1,12 +1,10 @@
 import { SimpleTypeKind } from "ts-simple-type";
 import { Node, PropertyLikeDeclaration, PropertySignature, ReturnStatement, SetAccessorDeclaration } from "typescript";
-import { WapitisPropertyConfig } from "../../types/features/wapitis-property-config";
 import { getMemberVisibilityFromNode, getModifiersFromNode, getNodeSourceFileLang, hasModifier } from "../../util/ast-util";
 import { getExtendsForInheritanceTree } from "../../util/inheritance-tree-util";
 import { getJsDoc, getJsDocType } from "../../util/js-doc-util";
 import { lazy } from "../../util/lazy";
 import { resolveNodeValue } from "../../util/resolve-node-value";
-import { camelToDashCase } from "../../util/text-util";
 import { AnalyzerDeclarationVisitContext, ComponentMemberResult } from "../analyzer-flavor";
 import { getWapitisPropertyDecoratorConfig, getWapitisPropertyOptions, parseWapitisPropertyOption } from "./parse-wapitis-property-configuration";
 
@@ -59,7 +57,7 @@ function parsePropertyDecorator(
 		const propName = node.name.getText();
 
 		// Get the attribute based on the configuration
-		const attrName = getWapitisAttributeName(propName, wapitisConfig, context);
+		const attrName = getWapitisAttributeName(propName);
 
 		// Find the default value for this property
 		const initializer = "initializer" in node ? node.initializer : undefined;
@@ -138,19 +136,9 @@ function inPolymerFlavorContext(context: AnalyzerDeclarationVisitContext): boole
  * @param wapitisConfig
  * @param context
  */
-function getWapitisAttributeName(
-	propName: string,
-	wapitisConfig: WapitisPropertyConfig,
-	context: AnalyzerDeclarationVisitContext
-): string | undefined {
+function getWapitisAttributeName(propName: string): string | undefined {
 	// Get the property name.
-	let attrName = propName;
-
-	if (inPolymerFlavorContext(context)) {
-		attrName = camelToDashCase(attrName).toLowerCase();
-	}
-
-	return attrName;
+	return propName;
 }
 
 /**
@@ -193,7 +181,7 @@ function parseStaticProperties(returnStatement: ReturnStatement, context: Analyz
 				: {};
 
 			// Get attrName based on the wapitisConfig
-			const attrName = getWapitisAttributeName(propName, wapitisConfig, context);
+			const attrName = getWapitisAttributeName(propName);
 
 			// Get more metadata
 			const jsDoc = getJsDoc(propNode, ts);

@@ -1,6 +1,6 @@
 {
 	"name": "web-component-analyzer",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"description": "CLI that analyzes web components",
 	"main": "lib/cjs/api.js",
 	"module": "lib/esm/api.js",
@@ -25,7 +25,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/runem/web-component-analyzer.git"
+		"url": "git+https://github.com/NicolasBoyer/web-component-analyzer.git"
 	},
 	"keywords": [
 		"web components",
@@ -37,14 +37,19 @@
 			"name": "Rune Mehlsen",
 			"url": "https://github.com/runem",
 			"img": "https://avatars0.githubusercontent.com/u/5372940?s=400&u=43d97899257af3c47715679512919eadb07eab26&v=4"
+		},
+		{
+			"name": "Nicolas Boyer",
+			"img": "https://joeschmoe.io/api/v1/random",
+			"url": "https://github.com/NicolasBoyer"
 		}
 	],
 	"author": "Rune Mehlsen",
 	"license": "MIT",
 	"bugs": {
-		"url": "https://github.com/runem/web-component-analyzer/issues"
+		"url": "https://github.com/NicolasBoyer/web-component-analyzer/issues"
 	},
-	"homepage": "https://github.com/runem/web-component-analyzer#readme",
+	"homepage": "https://github.com/NicolasBoyer/web-component-analyzer#readme",
 	"dependencies": {
 		"fast-glob": "^3.1.0",
 		"ts-simple-type": "~0.3.6",
