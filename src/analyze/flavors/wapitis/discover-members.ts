@@ -1,12 +1,11 @@
 import { SimpleTypeKind } from "ts-simple-type";
-import { Node, PropertyLikeDeclaration, PropertySignature, ReturnStatement, SetAccessorDeclaration } from "typescript";
-import { getMemberVisibilityFromNode, getModifiersFromNode, getNodeSourceFileLang, hasModifier } from "../../util/ast-util";
-import { getExtendsForInheritanceTree } from "../../util/inheritance-tree-util";
-import { getJsDoc, getJsDocType } from "../../util/js-doc-util";
+import { Node, PropertyLikeDeclaration, PropertySignature, SetAccessorDeclaration } from "typescript";
+import { getMemberVisibilityFromNode, getModifiersFromNode, getNodeSourceFileLang } from "../../util/ast-util";
+import { getJsDoc } from "../../util/js-doc-util";
 import { lazy } from "../../util/lazy";
 import { resolveNodeValue } from "../../util/resolve-node-value";
 import { AnalyzerDeclarationVisitContext, ComponentMemberResult } from "../analyzer-flavor";
-import { getWapitisPropertyDecoratorConfig, getWapitisPropertyOptions, parseWapitisPropertyOption } from "./parse-wapitis-property-configuration";
+import { getWapitisPropertyDecoratorConfig } from "./parse-wapitis-property-configuration";
 
 /**
  * Parses wapitis-related declaration members.
@@ -20,17 +19,6 @@ export function discoverMembers(node: Node, context: AnalyzerDeclarationVisitCon
 	// Never pick up members not declared directly on the declaration node being traversed
 	if (node.parent !== context.declarationNode) {
 		return undefined;
-	}
-
-	// static get properties() { return { myProp: {type: String} } }
-	if (ts.isGetAccessor(node) && hasModifier(node, ts.SyntaxKind.StaticKeyword)) {
-		const name = node.name.getText();
-		if (name === "properties" && node.body != null) {
-			const returnStatement = node.body.statements.find<ReturnStatement>(ts.isReturnStatement.bind(ts));
-			if (returnStatement != null) {
-				return parseStaticProperties(returnStatement, context);
-			}
-		}
 	}
 
 	// @property({type: String}) myProp = "hello";
@@ -101,36 +89,6 @@ function parsePropertyDecorator(
 }
 
 /**
- * Returns if we are in a Polymer context.
- * @param context
- */
-function inPolymerFlavorContext(context: AnalyzerDeclarationVisitContext): boolean {
-	const declaration = context.getDeclaration();
-
-	const cacheKey = `isPolymerFlavorContext:${context.getDefinition().tagName}`;
-
-	if (context.cache.general.has(cacheKey)) {
-		return context.cache.general.get(cacheKey) as boolean;
-	}
-
-	let result = false;
-
-	// Use "@polymer" jsdoc tag to indicate that this is polymer context
-	if (declaration.jsDoc?.tags?.some(t => t.tag === "polymer" || t.tag === "polymerElement")) {
-		result = true;
-	}
-
-	const extnds = getExtendsForInheritanceTree(declaration.inheritanceTree);
-	if (extnds.has("PolymerElement") || extnds.has("Polymer.Element")) {
-		result = true;
-	}
-
-	context.cache.general.set(cacheKey, result);
-
-	return result;
-}
-
-/**
  * Returns an attribute name based on a property name and a wapitis-configuration
  * @param propName
  * @param wapitisConfig
@@ -139,73 +97,4 @@ function inPolymerFlavorContext(context: AnalyzerDeclarationVisitContext): boole
 function getWapitisAttributeName(propName: string): string | undefined {
 	// Get the property name.
 	return propName;
-}
-
-/**
- * Visits static properties
- * static get properties() { return { myProp: {type: String, attribute: "my-attr"} } }
- * @param returnStatement
- * @param context
- */
-function parseStaticProperties(returnStatement: ReturnStatement, context: AnalyzerDeclarationVisitContext): ComponentMemberResult[] {
-	const { ts } = context;
-
-	const memberResults: ComponentMemberResult[] = [];
-
-	if (returnStatement.expression != null && ts.isObjectLiteralExpression(returnStatement.expression)) {
-		const isPolymerFlavor = inPolymerFlavorContext(context);
-
-		// Each property in the object literal expression corresponds to a class field.
-		for (const propNode of returnStatement.expression.properties) {
-			// Get propName
-			const propName = propNode.name != null && ts.isIdentifier(propNode.name) ? propNode.name.text : undefined;
-			if (propName == null) {
-				continue;
-			}
-
-			// Parse the wapitis property config for this property
-			// Treat non-object-literal-expressions like the "type" (to support Polymer specific syntax)
-			const wapitisConfig = ts.isPropertyAssignment(propNode)
-				? ts.isObjectLiteralExpression(propNode.initializer)
-					? getWapitisPropertyOptions(propNode.initializer, context)
-					: isPolymerFlavor
-					? parseWapitisPropertyOption(
-							{
-								kind: "type",
-								initializer: propNode.initializer,
-								config: {}
-							},
-							context
-					  )
-					: {}
-				: {};
-
-			// Get attrName based on the wapitisConfig
-			const attrName = getWapitisAttributeName(propName);
-
-			// Get more metadata
-			const jsDoc = getJsDoc(propNode, ts);
-
-			const emitAttribute = wapitisConfig.attribute !== false;
-
-			// Emit either the attribute or the property
-			memberResults.push({
-				priority: "high",
-				member: {
-					kind: "property",
-					type: lazy(() => {
-						return (jsDoc && getJsDocType(jsDoc)) || (typeof wapitisConfig.type === "object" && wapitisConfig.type) || { kind: SimpleTypeKind.ANY };
-					}),
-					propName: propName,
-					attrName: emitAttribute ? attrName : undefined,
-					jsDoc,
-					node: propNode,
-					meta: wapitisConfig,
-					default: wapitisConfig.default
-				}
-			});
-		}
-	}
-
-	return memberResults;
 }
