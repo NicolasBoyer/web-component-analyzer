@@ -24,13 +24,11 @@ export default [
 		output: [
 			{
 				dir: dirname(pkg.main),
-				format: "cjs",
-				chunkFileNames: "chunk-[hash].js"
+				format: "cjs"
 			},
 			{
 				dir: dirname(pkg.module),
-				format: "esm",
-				chunkFileNames: "chunk-[hash].js"
+				format: "esm"
 			}
 		],
 		plugins,
