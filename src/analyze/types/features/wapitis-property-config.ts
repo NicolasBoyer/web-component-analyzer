@@ -9,5 +9,6 @@ export interface WapitisPropertyConfig {
 		attribute?: Node;
 		decorator?: CallExpression;
 	};
+	hasConverter?: boolean;
 	default?: unknown;
 }

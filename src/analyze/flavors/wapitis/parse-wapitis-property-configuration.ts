@@ -98,6 +98,10 @@ export function parseWapitisPropertyOption(
 
 	// noinspection DuplicateCaseLabelJS
 	switch (kind) {
+		case "converter": {
+			return { ...config, hasConverter: true };
+		}
+
 		case "attribute": {
 			let attribute: WapitisPropertyConfig["attribute"] | undefined;
 
